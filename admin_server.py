@@ -114,6 +114,7 @@ class FlagUpdate(BaseModel):
     reranker_enabled:     Optional[bool] = None
     query_type_detection: Optional[bool] = None
     rate_limiting:        Optional[bool] = None
+    version:              Optional[str]  = None
 
 @app.patch("/api/config")
 async def update_config(body: FlagUpdate):

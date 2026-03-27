@@ -180,7 +180,8 @@ def vector_search(search_text: str, fetch_k: int, where: dict | None) -> list:
     if where:
         kwargs["where"] = where
     r = get_collection().query(**kwargs)
-    return list(zip(r["documents"][0], r["metadatas"][0]))
+    return [(doc, meta) for doc, meta in zip(r["documents"][0], r["metadatas"][0])
+            if doc is not None and isinstance(doc, str) and doc.strip()]
 
 def rerank_chunks(question: str, chunks: list, top_k: int) -> list:
     scores = get_reranker().predict([(question, doc) for doc, _ in chunks])
@@ -511,5 +512,9 @@ async def corpus_stats():
     except Exception as e:
         raise HTTPException(500, str(e))
 
+
+@app.get("/api/config")
+async def get_config():
+    return ff.load()
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8502)

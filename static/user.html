@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXE-FX III ASSISTANT</title>
+<title>AxeBot — Axe-Fx III AI Assistant</title>
+<link rel="icon" type="image/png" href="/static/axebot2.png">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
@@ -14,7 +15,7 @@
   --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --border:#2a2a2a;
   --orange:#ff6a00; --amber:#ffb347; --teal:#00d4d4; --green:#4caf50;
   --red:#e53935; --purple:#a78bfa;
-  --text:#e0e0e0; --text-dim:#666; --text-muted:#444;
+  --text:#ffffff; --text-dim:#b0b0b0; --text-muted:#808080;
   --glow:0 0 12px rgba(255,106,0,0.35); --glow-lg:0 0 24px rgba(255,106,0,0.2);
   --scan:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
 }
@@ -49,10 +50,10 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .chain-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-right:4px;}
 .block{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:5px 11px;border-radius:3px;border:1px solid;text-transform:uppercase;transition:all 0.3s;position:relative;overflow:hidden;}
 /* idle */
-.block-hyde  {border-color:#7a3200;color:#7a3200;}
-.block-embed {border-color:#006060;color:#006060;}
-.block-rerank{border-color:#4a3a7a;color:#4a3a7a;}
-.block-llm   {border-color:#7a5a00;color:#7a5a00;}
+.block-hyde  {border-color:#cc5500;color:#cc5500;}
+.block-embed {border-color:#00b0b0;color:#00b0b0;}
+.block-rerank{border-color:#8868cc;color:#8868cc;}
+.block-llm   {border-color:#cc9900;color:#cc9900;}
 /* running — bright glow + scanline sweep */
 .block.running.block-hyde  {border-color:var(--orange);color:var(--orange);background:rgba(255,106,0,0.12);box-shadow:0 0 8px rgba(255,106,0,0.4),0 0 18px rgba(255,106,0,0.2);animation:blockpulse 0.7s ease-in-out infinite;}
 .block.running.block-embed {border-color:var(--teal);  color:var(--teal);  background:rgba(0,212,212,0.1); box-shadow:0 0 8px rgba(0,212,212,0.4);animation:blockpulse 0.7s ease-in-out infinite;}
@@ -85,6 +86,9 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .submit-btn:hover{background:#ff8a30;box-shadow:0 0 18px rgba(255,106,0,0.5);}
 .submit-btn:active{transform:scale(0.97);}
 .submit-btn:disabled{background:#444;box-shadow:none;cursor:not-allowed;}
+.clear-btn{background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;padding:0 16px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;flex-shrink:0;}
+.clear-btn:hover{border-color:var(--red);color:var(--red);}
+.clear-btn:active{transform:scale(0.97);}
 
 /* ── Response ── */
 .response-wrap{margin-top:20px;}
@@ -122,6 +126,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 .sources{display:none;flex-wrap:wrap;gap:6px;margin-top:12px;}
 .sources.visible{display:flex;}
 .source-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.citation-ref{display:inline-block;color:var(--amber);font-weight:600;cursor:help;border-bottom:1px dotted var(--amber);position:relative;}
+.citation-ref[title]:hover::after{content:attr(title);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:#1c1c1c;color:#e0e0e0;border:1px solid var(--amber);border-radius:4px;padding:4px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;white-space:nowrap;z-index:100;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.6);}
 .src-pdf    {border-color:var(--orange);color:var(--orange);background:rgba(255,106,0,0.07);}
 .src-wiki   {border-color:var(--teal);  color:var(--teal);  background:rgba(0,212,212,0.07);}
 .src-forum  {border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.07);}
@@ -143,10 +149,10 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 
   <div class="faceplate">
     <div class="brand">
-      <div class="brand-logo">FA</div>
+      <img src="/static/axebot2.png" style="width:36px;height:36px;border-radius:50%;object-fit:cover;box-shadow:var(--glow);" alt="AxeBot">
       <div class="brand-text">
-        <span class="brand-name">AXE-FX III ASSISTANT</span>
-        <span class="brand-sub">POWERED BY FRACTAL AUDIO CORPUS</span>
+        <span class="brand-name">AxeBot</span>
+        <span class="brand-sub">AXE-FX III AI ASSISTANT</span>
       </div>
     </div>
     <div class="header-controls">
@@ -177,6 +183,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
              placeholder="Ask anything about the Axe-Fx III…"
              autocomplete="off" spellcheck="false" maxlength="500">
       <button class="submit-btn" id="submitBtn">ASK</button>
+      <button class="clear-btn" id="clearBtn">CLR</button>
     </div>
 
     <div class="response-wrap">
@@ -205,7 +212,10 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="status-item"><div class="sdot dot-ok" id="apiDot"></div><span id="apiStatus">API ONLINE</span></div>
       <div class="status-item"><div class="sdot dot-ok"></div><span id="corpusCount">CORPUS —</span></div>
     </div>
-    <span id="lastQuery">—</span>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span id="lastQuery">—</span>
+      <span id="versionBadge" style="opacity:0.5;">v—</span>
+    </div>
   </div>
 
 </div><!-- /chassis -->
@@ -214,8 +224,8 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-
 // ── DOMPurify config — strip everything except safe markdown output ─────────
 const PURIFY_CONFIG = {
   ALLOWED_TAGS: ['p','br','strong','em','b','i','ul','ol','li','h1','h2','h3',
-                 'h4','h5','h6','blockquote','code','pre','a'],
-  ALLOWED_ATTR: ['href','title'],
+                 'h4','h5','h6','blockquote','code','pre','a','span'],
+  ALLOWED_ATTR: ['href','title','class'],
   ALLOW_DATA_ATTR: false,
   FORCE_BODY: true,
 };
@@ -224,6 +234,28 @@ function safeMarkdown(text) {
     marked.parse(text, { gfm: true, breaks: true }),
     PURIFY_CONFIG
   );
+}
+
+// ── Citation map: [1] → pretty source label ──────────────────────────────────
+let citationMap = {};
+
+function prettySource(s) {
+  const name = (s.filename || '').replace(/\.pdf$/i,'').replace(/[-_]/g,' ');
+  const page = s.page != null ? `, p.${s.page + 1}` : '';
+  const type = (s.source_type || '').toLowerCase();
+  if (type === 'forum')   return `Forum — ${name}`;
+  if (type === 'youtube') return `YouTube — ${name}`;
+  if (type === 'wiki')    return `Wiki — ${name}`;
+  return `${name}${page}`;
+}
+
+function injectCitationTooltips(html) {
+  // Wrap [n] patterns in a span with tooltip — only if we have a mapping for n
+  return html.replace(/\[(\d+)\]/g, (match, num) => {
+    const label = citationMap[parseInt(num)];
+    if (!label) return match;
+    return `<span class="citation-ref" title="${label.replace(/"/g,'&quot;')}">${match}</span>`;
+  });
 }
 
 // ── Theme ──────────────────────────────────────────────────────────────────
@@ -270,7 +302,15 @@ async function checkHealth() {
     document.getElementById('apiStatus').textContent = 'API OFFLINE';
   }
 }
+async function loadVersion() {
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    if (d.version) document.getElementById('versionBadge').textContent = `v${d.version}`;
+  } catch {}
+}
 checkHealth();
+loadVersion();
 
 // ── Query ─────────────────────────────────────────────────────────────────
 const queryInput   = document.getElementById('queryInput');
@@ -344,7 +384,6 @@ function handleEvent(ev) {
       // Remove streaming div + cursor, render final markdown
       if (cursorEl) cursorEl.remove();
       const rawText = streamingDiv ? streamingDiv.textContent : '';
-      responseArea.innerHTML = safeMarkdown(rawText);
 
       // Meta
       document.getElementById('mType').textContent    = (ev.query_type||'—').toUpperCase();
@@ -353,19 +392,27 @@ function handleEvent(ev) {
       document.getElementById('mLatency').textContent = ev.latency_ms  ? `${ev.latency_ms}ms` : '—';
       metaBar.classList.add('visible');
 
-      // Sources
+      // Sources — build citation map [1..n] → pretty label
+      citationMap = {};
       const seen = new Set();
       sourcesRow.innerHTML = '';
+      let citationNum = 1;
       (ev.sources || []).forEach(s => {
         const key = `${s.source_type}:${s.filename}`;
-        if (seen.has(key)) return;
-        seen.add(key);
+        if (!seen.has(key)) {
+          citationMap[citationNum++] = prettySource(s);
+          seen.add(key);
+        }
         const tag = document.createElement('div');
         tag.className = `source-tag ${srcClass(s.source_type)}`;
-        tag.title     = s.filename;
-        tag.textContent = `[${(s.source_type||'?').toUpperCase()}] ${s.filename}`;
+        tag.title     = prettySource(s);
+        tag.textContent = `[${(s.source_type||'?').toUpperCase()}] ${prettySource(s)}`;
         sourcesRow.appendChild(tag);
       });
+
+      // Re-render final answer with citation tooltips injected
+      responseArea.innerHTML = injectCitationTooltips(safeMarkdown(rawText));
+
       sourcesRow.classList.add('visible');
 
       document.getElementById('lastQuery').textContent = `LAST QUERY ${new Date().toLocaleTimeString()}`;
@@ -453,6 +500,17 @@ async function submitQuery() {
 
 submitBtn.addEventListener('click', submitQuery);
 queryInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) submitQuery(); });
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  queryInput.value = '';
+  const ra = document.getElementById('responseArea');
+  ra.innerHTML = '<div class="scanner" id="scanner"></div><div class="empty-hint" id="emptyHint"><div class="big">◈</div><div>AWAITING INPUT</div></div>';
+  ra.className = 'response-area empty';
+  document.getElementById('metaBar').style.display = 'none';
+  document.getElementById('sourcesRow').innerHTML = '';
+  citationMap = {};
+  queryInput.focus();
+});
 </script>
 </body>
 </html>

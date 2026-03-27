@@ -2,5 +2,6 @@
   "hyde_enabled": true,
   "reranker_enabled": true,
   "query_type_detection": true,
-  "rate_limiting": true
+  "rate_limiting": true,
+  "version": "2112.3.03"
 }

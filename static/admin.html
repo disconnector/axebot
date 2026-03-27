@@ -17,8 +17,8 @@
   --orange:  #ff6a00;
   --crimson: #ff2952;
   --green:   #00e676;
-  --text:    #c8e6f0;
-  --dim:     #4a7090;
+  --text:    #e8f4f8;
+  --dim:     #6a90b0;
   --muted:   #2a4060;
   --glow-t:  0 0 10px rgba(0,212,212,0.3);
 }
@@ -198,7 +198,10 @@ body {
     <a class="nav-link" href="/test">TESTING</a>
     <a class="nav-link" href="http://localhost:8502" target="_blank">USER UI ↗</a>
   </div>
-  <div class="topbar-time" id="clock">—</div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span id="versionBadge" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);opacity:0.7;">v—</span>
+    <div class="topbar-time" id="clock">—</div>
+  </div>
 </div>
 
 <div class="main">
@@ -298,6 +301,30 @@ body {
         <div class="panel-body">
           <div id="healthInfo" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);line-height:2;">
             Checking…
+          </div>
+        </div>
+      </div>
+
+      <!-- System config -->
+      <div class="panel">
+        <div class="panel-header">SYSTEM CONFIG</div>
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;">VERSION</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input id="versionInput" type="text"
+                style="font-family:'JetBrains Mono',monospace;font-size:13px;
+                       background:var(--bg);color:var(--teal);
+                       border:1px solid var(--border);border-radius:3px;
+                       padding:5px 10px;width:100%;outline:none;
+                       transition:border-color 0.2s;"
+                placeholder="e.g. 2112.3.03"
+                onfocus="this.style.borderColor='var(--teal)'"
+                onblur="this.style.borderColor='var(--border)'"
+              />
+              <button id="versionSaveBtn" class="refresh-btn" style="white-space:nowrap;">SAVE</button>
+            </div>
+            <div id="versionStatus" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:4px;min-height:14px;"></div>
           </div>
         </div>
       </div>
@@ -446,6 +473,39 @@ document.getElementById('btnEnableHyde').addEventListener('click',  () => setFla
 document.getElementById('btnKillRerank').addEventListener('click',  () => setFlag({reranker_enabled:false},  'Reranker DISABLED'));
 document.getElementById('btnEnableRerank').addEventListener('click',() => setFlag({reranker_enabled:true},   'Reranker restored'));
 syncKillButtons();
+
+// ── Version config ─────────────────────────────────────────────────────────
+async function loadVersion() {
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    if (d.version) {
+      document.getElementById('versionInput').value = d.version;
+      document.getElementById('versionBadge').textContent = `v${d.version}`;
+    }
+  } catch {}
+}
+async function saveVersion() {
+  const v = document.getElementById('versionInput').value.trim();
+  if (!v) return;
+  const statusEl = document.getElementById('versionStatus');
+  try {
+    await fetch('/api/config', {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({version: v})
+    });
+    document.getElementById('versionBadge').textContent = `v${v}`;
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+  } catch(e) {
+    statusEl.style.color = 'var(--crimson)';
+    statusEl.textContent = 'Save failed';
+  }
+}
+document.getElementById('versionSaveBtn').addEventListener('click', saveVersion);
+document.getElementById('versionInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveVersion(); });
+loadVersion();
 </script>
 </body>
 </html>
