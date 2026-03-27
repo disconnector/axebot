@@ -1,0 +1,14 @@
+[Unit]
+Description=Axe-Fx III RAG API Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/rich/rag
+ExecStart=/home/rich/rag/venv/bin/python /home/rich/rag/server.py
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXEBOT — MANAGEMENT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #070f1a;
+  --surface: #0d1825;
+  --surface2:#111f30;
+  --border:  #1a2e44;
+  --teal:    #00d4d4;
+  --amber:   #ffb300;
+  --orange:  #ff6a00;
+  --crimson: #ff2952;
+  --green:   #00e676;
+  --text:    #c8e6f0;
+  --dim:     #4a7090;
+  --muted:   #2a4060;
+  --glow-t:  0 0 10px rgba(0,212,212,0.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--teal);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 0 20px rgba(0,212,212,0.1);
+}
+.topbar-brand {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  color: var(--teal);
+  letter-spacing: 3px;
+  text-shadow: var(--glow-t);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.topbar-brand .dot { width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:var(--glow-t);animation:pulse 2s infinite; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-links { display:flex;gap:8px; }
+.nav-link {
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;
+  padding:6px 14px;border-radius:3px;border:1px solid var(--border);
+  color:var(--dim);text-decoration:none;transition:all 0.2s;
+}
+.nav-link:hover,.nav-link.active{border-color:var(--teal);color:var(--teal);background:rgba(0,212,212,0.05);}
+.topbar-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);}
+
+/* ── Main grid ── */
+.main { padding: 20px 24px; display: grid; gap: 16px; }
+
+/* ── Stat cards ── */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 12px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal);
+}
+.stat-card.amber::before{background:var(--amber);box-shadow:0 0 8px var(--amber);}
+.stat-card.orange::before{background:var(--orange);box-shadow:0 0 8px var(--orange);}
+.stat-card.crimson::before{background:var(--crimson);box-shadow:0 0 8px var(--crimson);}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+.stat-val  {font-family:'Orbitron',sans-serif;font-size:28px;font-weight:700;color:var(--teal);line-height:1;}
+.stat-card.amber  .stat-val{color:var(--amber);}
+.stat-card.orange .stat-val{color:var(--orange);}
+.stat-card.crimson.stat-val{color:var(--crimson);}
+
+/* ── Panels ── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.panel-header {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-header .badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--dim);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--muted);
+}
+.panel-body { padding: 16px; }
+
+/* ── Table ── */
+.log-table { width:100%; border-collapse:collapse; font-size:12px; }
+.log-table th {
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;
+  color:var(--dim);text-transform:uppercase;padding:6px 10px;
+  border-bottom:1px solid var(--border);text-align:left;
+}
+.log-table td { padding:7px 10px; border-bottom:1px solid var(--muted); vertical-align:top; }
+.log-table tr:hover td { background:rgba(0,212,212,0.03); }
+.log-table tr:last-child td { border-bottom:none; }
+.q-text { color:var(--text); max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.badge-type { font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;border:1px solid; }
+.t-factual      { border-color:var(--teal);  color:var(--teal);  background:rgba(0,212,212,0.08);}
+.t-experiential { border-color:var(--amber); color:var(--amber); background:rgba(255,179,0,0.08);}
+.t-general      { border-color:var(--dim);   color:var(--dim);   background:transparent;}
+.t-blocked      { border-color:var(--crimson);color:var(--crimson);background:rgba(255,41,82,0.08);}
+.flag-dot { width:8px;height:8px;border-radius:50%;display:inline-block;margin:0 2px; }
+.f-on  { background:var(--green); }
+.f-off { background:var(--muted); }
+.lat-val { font-family:'JetBrains Mono',monospace; color:var(--amber); }
+.ts-val  { font-family:'JetBrains Mono',monospace; color:var(--dim); font-size:11px; }
+
+/* ── Corpus breakdown ── */
+.corpus-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px; }
+.corpus-item { display:flex;flex-direction:column;gap:4px; }
+.corpus-label { font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--dim);text-transform:uppercase; }
+.corpus-bar-wrap { height:4px;background:var(--muted);border-radius:2px;overflow:hidden; }
+.corpus-bar  { height:100%;border-radius:2px;transition:width 0.6s ease; }
+.corpus-count { font-family:'Orbitron',monospace;font-size:16px;color:var(--teal); }
+.bar-pdf{background:var(--orange);}
+.bar-wiki{background:var(--teal);}
+.bar-forum{background:var(--green);}
+.bar-youtube{background:var(--crimson);}
+
+/* ── Refresh btn ── */
+.refresh-btn {
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
+  padding:4px 12px;border:1px solid var(--border);border-radius:3px;
+  background:transparent;color:var(--dim);cursor:pointer;transition:all 0.2s;
+}
+.refresh-btn:hover{border-color:var(--teal);color:var(--teal);}
+
+/* ── Kill switch bar ── */
+.killbar {
+  background:rgba(255,41,82,0.06);border:1px solid rgba(255,41,82,0.2);
+  border-radius:4px;padding:10px 16px;display:flex;align-items:center;
+  gap:12px;flex-wrap:wrap;transition:background 0.3s;
+}
+.killbar-label {
+  font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;
+  color:var(--crimson);display:flex;align-items:center;gap:8px;flex-shrink:0;
+}
+.kill-pulse {width:7px;height:7px;border-radius:50%;background:var(--crimson);box-shadow:0 0 5px var(--crimson);animation:pulse 1.2s infinite;}
+.kill-btn {
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
+  padding:5px 13px;border-radius:3px;border:1px solid;cursor:pointer;
+  background:transparent;transition:all 0.2s;white-space:nowrap;
+}
+.kill-btn.danger  {border-color:var(--crimson);color:var(--crimson);}
+.kill-btn.danger:hover  {background:rgba(255,41,82,0.15);}
+.kill-btn.safe    {border-color:var(--green);color:var(--green);}
+.kill-btn.safe:hover    {background:rgba(0,230,118,0.1);}
+.kill-btn.neutral {border-color:var(--amber);color:var(--amber);}
+.kill-status {font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-left:auto;}
+/* live indicator */
+.live-dot {width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);display:inline-block;animation:pulse 1.5s infinite;vertical-align:middle;margin-left:4px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="dot"></div>
+    AXEBOT MANAGEMENT
+  </div>
+  <div class="nav-links">
+    <a class="nav-link active" href="/">MANAGEMENT</a>
+    <a class="nav-link" href="/test">TESTING</a>
+    <a class="nav-link" href="http://localhost:8502" target="_blank">USER UI ↗</a>
+  </div>
+  <div class="topbar-time" id="clock">—</div>
+</div>
+
+<div class="main">
+
+  <!-- Kill switch bar -->
+  <div class="killbar" id="killbar">
+    <div class="killbar-label"><div class="kill-pulse"></div>QUICK CONTROLS</div>
+    <button class="kill-btn danger"  id="btnKillRate"    >KILL RATE LIMIT</button>
+    <button class="kill-btn safe"    id="btnEnableRate"  style="display:none">RESTORE RATE LIMIT</button>
+    <button class="kill-btn danger"  id="btnKillHyde"    >DISABLE HyDE</button>
+    <button class="kill-btn safe"    id="btnEnableHyde"  style="display:none">ENABLE HyDE</button>
+    <button class="kill-btn danger"  id="btnKillRerank"  >DISABLE RERANK</button>
+    <button class="kill-btn safe"    id="btnEnableRerank"style="display:none">ENABLE RERANK</button>
+    <span class="kill-status" id="killStatus">ALL SYSTEMS NOMINAL</span>
+  </div>
+
+
+  <!-- Stat cards -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Queries</div>
+      <div class="stat-val" id="statTotal">—</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Last 24h</div>
+      <div class="stat-val" id="stat24h">—</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Avg Latency</div>
+      <div class="stat-val" id="statLatency">—</div>
+    </div>
+    <div class="stat-card crimson">
+      <div class="stat-label">Blocked</div>
+      <div class="stat-val" id="statBlocked">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Corpus Chunks</div>
+      <div class="stat-val" id="statCorpus">—</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Avg Cost / Query</div>
+      <div class="stat-val" id="statAvgCost">—</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Total Claude Cost</div>
+      <div class="stat-val" id="statTotalCost">—</div>
+    </div>
+  </div>
+
+  <!-- Two-column row -->
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+
+    <!-- Recent queries -->
+    <div class="panel">
+      <div class="panel-header">
+        RECENT QUERIES &nbsp;<span class="live-dot" title="Auto-refreshes every 5s"></span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="badge" id="queryCount">0 records</span>
+          <button class="refresh-btn" id="refreshBtn">↻ REFRESH</button>
+        </div>
+      </div>
+      <div class="panel-body" style="padding:0;overflow-x:auto;">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Question</th>
+              <th>Type</th>
+              <th>HyDE</th>
+              <th>Rerank</th>
+              <th>Latency</th>
+            </tr>
+          </thead>
+          <tbody id="logBody">
+            <tr><td colspan="6" style="text-align:center;color:var(--dim);padding:20px;">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right column -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Corpus breakdown -->
+      <div class="panel">
+        <div class="panel-header">CORPUS BREAKDOWN</div>
+        <div class="panel-body">
+          <div class="corpus-grid" id="corpusGrid">
+            <div style="color:var(--dim);font-size:12px;">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System health -->
+      <div class="panel">
+        <div class="panel-header">SYSTEM HEALTH</div>
+        <div class="panel-body">
+          <div id="healthInfo" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);line-height:2;">
+            Checking…
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = '';  // same origin (admin server)
+
+// Clock
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US',{hour12:false}) + ' UTC';
+}
+updateClock(); setInterval(updateClock, 1000);
+
+function fmt(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts + 'Z');
+  return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+function typeClass(t, blocked) {
+  if (blocked) return 't-blocked';
+  return {factual:'t-factual',experiential:'t-experiential',general:'t-general'}[t]||'t-general';
+}
+function typeLabel(t, blocked) {
+  if (blocked) return 'BLOCKED';
+  return (t||'?').toUpperCase().slice(0,3);
+}
+
+async function loadData() {
+  // Stats
+  try {
+    const r  = await fetch(`${API}/api/stats`);
+    const d  = await r.json();
+    const qs = d.query_stats || {};
+    const co = d.corpus || {};
+    document.getElementById('statTotal').textContent   = (qs.total||0).toLocaleString();
+    document.getElementById('stat24h').textContent     = (qs.last_24h||0).toLocaleString();
+    document.getElementById('statLatency').textContent = qs.avg_latency_ms ? qs.avg_latency_ms+'ms' : '—';
+    document.getElementById('statBlocked').textContent  = (qs.blocked||0).toLocaleString();
+    document.getElementById('statCorpus').textContent   = (co.total||0).toLocaleString();
+    document.getElementById('statAvgCost').textContent  = qs.avg_cost_usd != null ? '$'+qs.avg_cost_usd.toFixed(4) : '—';
+    document.getElementById('statTotalCost').textContent= qs.total_cost_usd != null ? '$'+qs.total_cost_usd.toFixed(4) : '—';
+
+    // Corpus breakdown
+    const types = co.by_source_type || {};
+    const total = co.total || 1;
+    const order = ['pdf','wiki','forum','youtube'];
+    const corpusGrid = document.getElementById('corpusGrid');
+    corpusGrid.innerHTML = order.map(t => {
+      const n   = types[t] || 0;
+      const pct = Math.round(n/total*100);
+      return `<div class="corpus-item">
+        <div class="corpus-label">${t}</div>
+        <div class="corpus-count">${n.toLocaleString()}</div>
+        <div class="corpus-bar-wrap"><div class="corpus-bar bar-${t}" style="width:${pct}%"></div></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim)">${pct}%</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('Stats error', e);
+  }
+
+  // Logs
+  try {
+    const r = await fetch(`${API}/api/logs?limit=60`);
+    const d = await r.json();
+    const rows = d.queries || [];
+    document.getElementById('queryCount').textContent = `${rows.length} records`;
+    const tbody = document.getElementById('logBody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:20px;">No queries yet</td></tr>';
+    } else {
+      tbody.innerHTML = rows.map(q => `
+        <tr>
+          <td class="ts-val">${fmt(q.timestamp)}</td>
+          <td><div class="q-text" title="${q.question}">${q.question}</div></td>
+          <td><span class="badge-type ${typeClass(q.query_type,q.blocked)}">${typeLabel(q.query_type,q.blocked)}</span></td>
+          <td><span class="flag-dot ${q.hyde_used?'f-on':'f-off'}" title="${q.hyde_used?'on':'off'}"></span></td>
+          <td><span class="flag-dot ${q.rerank_used?'f-on':'f-off'}" title="${q.rerank_used?'on':'off'}"></span></td>
+          <td class="lat-val">${q.latency_ms!=null?q.latency_ms+'ms':'—'}</td>
+        </tr>`).join('');
+    }
+  } catch(e) {
+    document.getElementById('logBody').innerHTML = `<tr><td colspan="6" style="color:var(--crimson);padding:12px;">Error loading logs</td></tr>`;
+  }
+
+  // Health
+  try {
+    const r = await fetch(`${API}/api/health`);
+    const d = await r.json();
+    document.getElementById('healthInfo').innerHTML = `
+      STATUS &nbsp;&nbsp;<span style="color:${d.status==='ok'?'var(--green)':'var(--crimson)'}">${(d.status||'?').toUpperCase()}</span><br>
+      CHUNKS &nbsp;&nbsp;<span style="color:var(--teal)">${(d.doc_count||0).toLocaleString()}</span><br>
+      UPDATED &nbsp;<span style="color:var(--amber)">${(d.last_updated||'?').slice(0,10)}</span><br>
+      HYDE &nbsp;&nbsp;&nbsp;<span style="color:${d.flags?.hyde_enabled?'var(--green)':'var(--crimson)'}">${d.flags?.hyde_enabled?'ON':'OFF'}</span><br>
+      RERANK &nbsp;<span style="color:${d.flags?.reranker_enabled?'var(--green)':'var(--crimson)'}">${d.flags?.reranker_enabled?'ON':'OFF'}</span>
+    `;
+  } catch {
+    document.getElementById('healthInfo').innerHTML = '<span style="color:var(--crimson)">RAG API UNREACHABLE</span>';
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+loadData();
+setInterval(loadData, 5000);
+
+// ── Kill switch controls ───────────────────────────────────────────────────
+async function setFlag(updates, msg) {
+  try {
+    await fetch('/api/config', {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(updates)
+    });
+    document.getElementById('killStatus').textContent = msg + ' — ' + new Date().toLocaleTimeString();
+    syncKillButtons();
+  } catch(e) {
+    document.getElementById('killStatus').textContent = 'ERROR: ' + e.message;
+  }
+}
+async function syncKillButtons() {
+  try {
+    const r = await fetch('/api/config');
+    const d = await r.json();
+    const show = (id, visible) => { document.getElementById(id).style.display = visible ? '' : 'none'; };
+    show('btnKillRate',     d.rate_limiting);
+    show('btnEnableRate',  !d.rate_limiting);
+    show('btnKillHyde',     d.hyde_enabled);
+    show('btnEnableHyde',  !d.hyde_enabled);
+    show('btnKillRerank',   d.reranker_enabled);
+    show('btnEnableRerank',!d.reranker_enabled);
+    const anyOff = !d.rate_limiting || !d.hyde_enabled || !d.reranker_enabled;
+    const kb = document.getElementById('killbar');
+    kb.style.background = anyOff ? 'rgba(255,41,82,0.14)' : 'rgba(255,41,82,0.06)';
+    kb.style.borderColor = anyOff ? 'rgba(255,41,82,0.5)' : 'rgba(255,41,82,0.2)';
+    if (!anyOff) document.getElementById('killStatus').textContent = 'ALL SYSTEMS NOMINAL';
+  } catch(e) {}
+}
+document.getElementById('btnKillRate').addEventListener('click',    () => setFlag({rate_limiting:false},     'Rate limiting DISABLED'));
+document.getElementById('btnEnableRate').addEventListener('click',  () => setFlag({rate_limiting:true},      'Rate limiting restored'));
+document.getElementById('btnKillHyde').addEventListener('click',    () => setFlag({hyde_enabled:false},      'HyDE DISABLED'));
+document.getElementById('btnEnableHyde').addEventListener('click',  () => setFlag({hyde_enabled:true},       'HyDE restored'));
+document.getElementById('btnKillRerank').addEventListener('click',  () => setFlag({reranker_enabled:false},  'Reranker DISABLED'));
+document.getElementById('btnEnableRerank').addEventListener('click',() => setFlag({reranker_enabled:true},   'Reranker restored'));
+syncKillButtons();
+</script>
+</body>
+</html>

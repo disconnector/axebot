@@ -1,0 +1,21 @@
+# Runtime data
+venv/
+db/
+models/
+queries.db
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+*.log.*
+
+# Backups
+*.bak
+
+# Secrets / local config (feature_flags.json is safe to commit)
+.env
+
+# OS
+.DS_Store

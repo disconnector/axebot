@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXEBOT — TESTING</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Barlow:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root {
+  --bg:#070f1a;--surface:#0d1825;--surface2:#111f30;--border:#1a2e44;
+  --teal:#00d4d4;--amber:#ffb300;--orange:#ff6a00;--crimson:#ff2952;
+  --green:#00e676;--purple:#a78bfa;--text:#c8e6f0;--dim:#4a7090;--muted:#2a4060;
+  --glow-t:0 0 10px rgba(0,212,212,0.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--teal);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 0 20px rgba(0,212,212,0.1);}
+.topbar-brand{font-family:'Orbitron',sans-serif;font-size:16px;color:var(--teal);letter-spacing:3px;text-shadow:var(--glow-t);display:flex;align-items:center;gap:12px;}
+.topbar-brand .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px var(--orange);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-links{display:flex;gap:8px;}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;padding:6px 14px;border-radius:3px;border:1px solid var(--border);color:var(--dim);text-decoration:none;transition:all 0.2s;}
+.nav-link:hover,.nav-link.active{border-color:var(--teal);color:var(--teal);background:rgba(0,212,212,0.05);}
+.topbar-time{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);}
+.main{padding:20px 24px;display:grid;gap:16px;}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;}
+.panel-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 16px;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;color:var(--teal);display:flex;align-items:center;justify-content:space-between;}
+.panel-body{padding:16px;}
+
+/* ── Module toggles ── */
+.module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.module-card{
+  background:var(--bg);border:1px solid var(--border);border-radius:4px;
+  padding:16px;display:flex;flex-direction:column;gap:10px;
+  transition:border-color 0.2s;
+}
+.module-card.enabled{border-color:var(--teal);box-shadow:0 0 8px rgba(0,212,212,0.1);}
+.module-card.disabled{border-color:var(--muted);opacity:0.7;}
+.module-top{display:flex;align-items:center;justify-content:space-between;}
+.module-name{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:1px;}
+.module-desc{font-family:'Barlow',sans-serif;font-size:12px;color:var(--dim);line-height:1.4;}
+.module-card.enabled .module-name{color:var(--teal);}
+.module-card.disabled .module-name{color:var(--dim);}
+
+/* Toggle switch */
+.toggle{position:relative;width:46px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{
+  position:absolute;inset:0;border-radius:12px;cursor:pointer;
+  background:var(--muted);transition:background 0.2s;border:1px solid var(--border);
+}
+.toggle input:checked+.toggle-track{background:rgba(0,212,212,0.3);border-color:var(--teal);}
+.toggle-track::before{
+  content:'';position:absolute;width:18px;height:18px;border-radius:50%;
+  top:2px;left:2px;background:var(--dim);transition:all 0.2s;
+}
+.toggle input:checked+.toggle-track::before{transform:translateX(22px);background:var(--teal);box-shadow:0 0 6px var(--teal);}
+
+/* ── Query harness ── */
+.query-row{display:flex;gap:10px;}
+.test-input{
+  flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;
+  color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;
+  padding:10px 14px;outline:none;transition:border-color 0.2s;
+}
+.test-input:focus{border-color:var(--teal);box-shadow:0 0 0 2px rgba(0,212,212,0.1);}
+.test-input::placeholder{color:var(--muted);}
+.ask-btn{
+  background:var(--orange);border:none;border-radius:4px;color:#fff;
+  font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;
+  padding:0 20px;cursor:pointer;transition:all 0.15s;
+  box-shadow:0 0 12px rgba(255,106,0,0.3);white-space:nowrap;
+}
+.ask-btn:hover{background:#ff8a30;box-shadow:0 0 18px rgba(255,106,0,0.5);}
+.ask-btn:disabled{background:#333;box-shadow:none;cursor:not-allowed;}
+
+/* ── Response panels ── */
+.results-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+.result-panel{
+  background:var(--bg);border:1px solid var(--border);border-radius:4px;
+  padding:16px;min-height:160px;
+}
+.result-header{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:12px;
+  flex-wrap:wrap;
+}
+.result-header .chip{
+  padding:2px 8px;border-radius:3px;border:1px solid;font-size:9px;
+}
+.chip-hyde  {border-color:var(--orange);color:var(--orange);}
+.chip-embed {border-color:var(--teal);  color:var(--teal);}
+.chip-rerank{border-color:var(--purple);color:var(--purple);}
+.chip-off   {border-color:var(--muted); color:var(--muted);}
+.result-body{font-size:14px;line-height:1.7;color:var(--text);}
+.result-body h1,.result-body h2,.result-body h3{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--orange);margin:12px 0 6px;}
+.result-body p{margin-bottom:8px;}
+.result-body ul,.result-body ol{margin:6px 0 8px 18px;}
+.result-body li{margin-bottom:3px;}
+.result-body code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(255,106,0,0.08);border:1px solid rgba(255,106,0,0.15);padding:1px 5px;border-radius:3px;color:var(--orange);}
+.result-body strong{color:#fff;}
+.result-meta{
+  margin-top:12px;padding-top:10px;border-top:1px solid var(--border);
+  display:flex;gap:16px;flex-wrap:wrap;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
+}
+.result-meta .mv{color:var(--amber);}
+.sources-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+.src-tag{
+  font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;
+  border-radius:3px;border:1px solid;max-width:220px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.s-pdf    {border-color:var(--orange);color:var(--orange);}
+.s-wiki   {border-color:var(--teal);  color:var(--teal);}
+.s-forum  {border-color:var(--green); color:var(--green);}
+.s-youtube{border-color:var(--crimson);color:var(--crimson);}
+.loading-bar{height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);animation:scanh 1.2s ease-in-out infinite;display:none;}
+.loading-bar.on{display:block;}
+@keyframes scanh{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.empty-state{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;text-align:center;padding:30px 0;}
+.global-flags-note{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
+  padding:8px 12px;background:var(--bg);border:1px solid var(--muted);
+  border-radius:3px;margin-top:12px;
+}
+.save-btn{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
+  padding:5px 14px;border:1px solid var(--border);border-radius:3px;
+  background:transparent;color:var(--dim);cursor:pointer;transition:all 0.2s;
+}
+.save-btn:hover{border-color:var(--amber);color:var(--amber);}
+.save-indicator{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);opacity:0;transition:opacity 0.3s;}
+.save-indicator.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="dot"></div>
+    AXEBOT TESTING
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/">MANAGEMENT</a>
+    <a class="nav-link active" href="/test">TESTING</a>
+    <a class="nav-link" href="http://localhost:8502" target="_blank">USER UI ↗</a>
+  </div>
+  <div class="topbar-time" id="clock">—</div>
+</div>
+
+<div class="main">
+
+  <!-- Module controls -->
+  <div class="panel">
+    <div class="panel-header">
+      MODULE CONTROLS — GLOBAL FLAGS
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span class="save-indicator" id="saveIndicator">✓ SAVED</span>
+        <button class="save-btn" id="saveBtn">SAVE GLOBAL FLAGS</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="module-grid">
+
+        <div class="module-card" id="card-hyde">
+          <div class="module-top">
+            <span class="module-name">HyDE</span>
+            <label class="toggle"><input type="checkbox" id="tog-hyde"><span class="toggle-track"></span></label>
+          </div>
+          <div class="module-desc">Hypothetical Document Embedding — expands your query into a technical answer before embedding. Improves recall for vague or informal queries.</div>
+        </div>
+
+        <div class="module-card" id="card-reranker">
+          <div class="module-top">
+            <span class="module-name">RERANKER</span>
+            <label class="toggle"><input type="checkbox" id="tog-reranker"><span class="toggle-track"></span></label>
+          </div>
+          <div class="module-desc">Cross-encoder precision filter — scores each (query, chunk) pair together. Fetches 4× candidates then keeps the best-ranked. Improves answer precision.</div>
+        </div>
+
+        <div class="module-card" id="card-qtd">
+          <div class="module-top">
+            <span class="module-name">QUERY TYPE DETECTION</span>
+            <label class="toggle"><input type="checkbox" id="tog-qtd"><span class="toggle-track"></span></label>
+          </div>
+          <div class="module-desc">Classifies queries as factual/experiential/general and applies source filters. Factual → PDFs + wiki. Experiential → forum + YouTube.</div>
+        </div>
+
+        <div class="module-card" id="card-ratelimit">
+          <div class="module-top">
+            <span class="module-name">RATE LIMITING</span>
+            <label class="toggle"><input type="checkbox" id="tog-ratelimit"><span class="toggle-track"></span></label>
+          </div>
+          <div class="module-desc">10 requests / 60 seconds per IP. Disable for load testing. Re-enable before exposing publicly.</div>
+        </div>
+
+      </div>
+      <div class="global-flags-note">
+        Global flags affect all incoming requests to the RAG API. Per-request overrides below only apply to test queries from this interface.
+      </div>
+    </div>
+  </div>
+
+  <!-- Test harness -->
+  <div class="panel">
+    <div class="panel-header">TEST HARNESS — PER-REQUEST OVERRIDES</div>
+    <div class="panel-body">
+
+      <div style="margin-bottom:14px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--dim);margin-bottom:8px;">
+          OVERRIDE FLAGS FOR THIS TEST RUN &nbsp;<span style="color:var(--muted)">(leave switches off to use global flags)</span>
+        </div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <label class="toggle" style="width:36px;height:20px;">
+              <input type="checkbox" id="ov-hyde">
+              <span class="toggle-track" style="border-radius:10px;"></span>
+            </label>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);">OVERRIDE HyDE</span>
+            <select id="val-hyde" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;">
+              <option value="true">ON</option><option value="false">OFF</option>
+            </select>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <label class="toggle" style="width:36px;height:20px;">
+              <input type="checkbox" id="ov-reranker">
+              <span class="toggle-track" style="border-radius:10px;"></span>
+            </label>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);">OVERRIDE RERANKER</span>
+            <select id="val-reranker" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;">
+              <option value="true">ON</option><option value="false">OFF</option>
+            </select>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <label class="toggle" style="width:36px;height:20px;">
+              <input type="checkbox" id="ov-qtd">
+              <span class="toggle-track" style="border-radius:10px;"></span>
+            </label>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);">OVERRIDE QTD</span>
+            <select id="val-qtd" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;">
+              <option value="true">ON</option><option value="false">OFF</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="query-row">
+        <input type="text" class="test-input" id="testInput"
+               placeholder="Enter a test question…" autocomplete="off">
+        <button class="ask-btn" id="testBtn">RUN TEST</button>
+      </div>
+
+      <div class="loading-bar" id="loadingBar" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="panel" id="resultPanel" style="display:none;">
+    <div class="panel-header">RESULT</div>
+    <div class="panel-body">
+      <div class="result-panel">
+        <div class="result-header" id="resultHeader">—</div>
+        <div class="result-body" id="resultBody"></div>
+        <div class="result-meta" id="resultMeta"></div>
+        <div class="sources-row" id="resultSources"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+const API = '';
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour12:false})+' UTC';}
+updateClock(); setInterval(updateClock,1000);
+
+// ── Load global flags ─────────────────────────────────────────────────────
+async function loadFlags() {
+  try {
+    const r = await fetch(`${API}/api/config`);
+    const d = await r.json();
+    document.getElementById('tog-hyde').checked     = !!d.hyde_enabled;
+    document.getElementById('tog-reranker').checked = !!d.reranker_enabled;
+    document.getElementById('tog-qtd').checked      = !!d.query_type_detection;
+    document.getElementById('tog-ratelimit').checked= !!d.rate_limiting;
+    updateCards();
+  } catch(e){ console.error(e); }
+}
+
+function updateCards() {
+  [
+    ['hyde','tog-hyde'],['reranker','tog-reranker'],
+    ['qtd','tog-qtd'],['ratelimit','tog-ratelimit']
+  ].forEach(([id,togId]) => {
+    const on  = document.getElementById(togId).checked;
+    const card= document.getElementById(`card-${id}`);
+    if(card){card.className='module-card '+(on?'enabled':'disabled');}
+  });
+}
+['tog-hyde','tog-reranker','tog-qtd','tog-ratelimit'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', updateCards);
+});
+
+// ── Save global flags ─────────────────────────────────────────────────────
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const payload = {
+    hyde_enabled:         document.getElementById('tog-hyde').checked,
+    reranker_enabled:     document.getElementById('tog-reranker').checked,
+    query_type_detection: document.getElementById('tog-qtd').checked,
+    rate_limiting:        document.getElementById('tog-ratelimit').checked,
+  };
+  try {
+    await fetch(`${API}/api/config`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const ind = document.getElementById('saveIndicator');
+    ind.classList.add('show');
+    setTimeout(()=>ind.classList.remove('show'), 2000);
+  } catch(e){ alert('Save failed: '+e.message); }
+});
+
+// ── Run test ──────────────────────────────────────────────────────────────
+function srcClass(t){return{pdf:'s-pdf',wiki:'s-wiki',forum:'s-forum',youtube:'s-youtube'}[t]||'';}
+
+async function runTest() {
+  const q = document.getElementById('testInput').value.trim();
+  if (!q) return;
+
+  document.getElementById('testBtn').disabled = true;
+  document.getElementById('testBtn').textContent = '···';
+  document.getElementById('loadingBar').classList.add('on');
+  document.getElementById('resultPanel').style.display = 'none';
+
+  const payload = { question: q };
+  if (document.getElementById('ov-hyde').checked)
+    payload.hyde     = document.getElementById('val-hyde').value === 'true';
+  if (document.getElementById('ov-reranker').checked)
+    payload.reranker = document.getElementById('val-reranker').value === 'true';
+  if (document.getElementById('ov-qtd').checked)
+    payload.query_type_detection = document.getElementById('val-qtd').value === 'true';
+
+  try {
+    const r = await fetch(`${API}/api/test`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (!r.ok) {
+      document.getElementById('resultBody').innerHTML = `<span style="color:var(--crimson)">${d.detail||'Error'}</span>`;
+      document.getElementById('resultPanel').style.display = '';
+      return;
+    }
+
+    // Header chips
+    const hChip = `<span class="chip ${d.hyde_used?'chip-hyde':'chip-off'}" title="HyDE">HyDE ${d.hyde_used?'ON':'OFF'}</span>`;
+    const eChip = `<span class="chip chip-embed">EMBED</span>`;
+    const rChip = `<span class="chip ${d.rerank_used?'chip-rerank':'chip-off'}" title="Reranker">RERANK ${d.rerank_used?'ON':'OFF'}</span>`;
+    document.getElementById('resultHeader').innerHTML =
+      `<span>${(d.query_type||'').toUpperCase()}</span>${hChip}${eChip}${rChip}`;
+
+    document.getElementById('resultBody').innerHTML = marked.parse(d.answer||'');
+
+    // Meta
+    document.getElementById('resultMeta').innerHTML =
+      `<span>LATENCY <span class="mv">${d.latency_ms!=null?d.latency_ms+'ms':'—'}</span></span>
+       <span>MODEL <span class="mv">${d.model||'—'}</span></span>`;
+
+    // Sources
+    const sr = document.getElementById('resultSources');
+    sr.innerHTML = '';
+    const seen = new Set();
+    (d.sources||[]).forEach(s=>{
+      const key=`${s.source_type}:${s.filename}`;
+      if(seen.has(key))return; seen.add(key);
+      const t=document.createElement('div');
+      t.className=`src-tag ${srcClass(s.source_type)}`;
+      t.title=s.filename;
+      t.textContent=`[${(s.source_type||'?').toUpperCase()}] ${s.filename}`;
+      sr.appendChild(t);
+    });
+
+    document.getElementById('resultPanel').style.display = '';
+  } catch(e) {
+    document.getElementById('resultBody').innerHTML = `<span style="color:var(--crimson)">Error: ${e.message}</span>`;
+    document.getElementById('resultPanel').style.display = '';
+  } finally {
+    document.getElementById('testBtn').disabled = false;
+    document.getElementById('testBtn').textContent = 'RUN TEST';
+    document.getElementById('loadingBar').classList.remove('on');
+  }
+}
+
+document.getElementById('testBtn').addEventListener('click', runTest);
+document.getElementById('testInput').addEventListener('keydown', e => {
+  if (e.key==='Enter') runTest();
+});
+
+loadFlags();
+</script>
+</body>
+</html>

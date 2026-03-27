@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AXE-FX III ASSISTANT</title>
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+<style>
+:root {
+  --bg:#0a0a0a; --surface:#141414; --surface2:#1c1c1c; --border:#2a2a2a;
+  --orange:#ff6a00; --amber:#ffb347; --teal:#00d4d4; --green:#4caf50;
+  --red:#e53935; --purple:#a78bfa;
+  --text:#e0e0e0; --text-dim:#666; --text-muted:#444;
+  --glow:0 0 12px rgba(255,106,0,0.35); --glow-lg:0 0 24px rgba(255,106,0,0.2);
+  --scan:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);
+}
+[data-theme="light"] {
+  --bg:#e8e8e8; --surface:#f4f4f4; --surface2:#ffffff; --border:#cccccc;
+  --text:#1a1a1a; --text-dim:#555; --text-muted:#999;
+  --glow:0 0 12px rgba(255,106,0,0.15); --glow-lg:none; --scan:none;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 16px 40px;}
+
+.chassis{width:100%;max-width:820px;margin-top:32px;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;box-shadow:0 4px 40px rgba(0,0,0,0.6),var(--glow-lg);}
+
+/* ── Faceplate ── */
+.faceplate{background:linear-gradient(180deg,#1e1e1e 0%,#161616 100%);border-bottom:2px solid var(--orange);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+[data-theme="light"] .faceplate{background:linear-gradient(180deg,#ddd 0%,#ccc 100%);}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-logo{width:36px;height:36px;border:2px solid var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;color:var(--orange);box-shadow:var(--glow);flex-shrink:0;}
+.brand-text{display:flex;flex-direction:column;}
+.brand-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:18px;color:var(--orange);letter-spacing:2px;line-height:1;text-shadow:var(--glow);}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-top:2px;}
+.header-controls{display:flex;align-items:center;gap:16px;}
+.led{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px var(--teal);animation:ledpulse 2s ease-in-out infinite;}
+.led.orange{background:var(--orange);box-shadow:0 0 6px var(--orange);}
+@keyframes ledpulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.theme-toggle{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);width:32px;height:32px;border-radius:4px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.theme-toggle:hover{border-color:var(--orange);color:var(--orange);}
+
+/* ── Signal chain blocks ── */
+.block-row{background:#0d0d0d;border-bottom:1px solid var(--border);padding:8px 24px;display:flex;gap:8px;align-items:center;}
+[data-theme="light"] .block-row{background:#ddd;}
+.chain-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-right:4px;}
+.block{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;padding:5px 11px;border-radius:3px;border:1px solid;text-transform:uppercase;transition:all 0.3s;position:relative;overflow:hidden;}
+/* idle */
+.block-hyde  {border-color:#7a3200;color:#7a3200;}
+.block-embed {border-color:#006060;color:#006060;}
+.block-rerank{border-color:#4a3a7a;color:#4a3a7a;}
+.block-llm   {border-color:#7a5a00;color:#7a5a00;}
+/* running — bright glow + scanline sweep */
+.block.running.block-hyde  {border-color:var(--orange);color:var(--orange);background:rgba(255,106,0,0.12);box-shadow:0 0 8px rgba(255,106,0,0.4),0 0 18px rgba(255,106,0,0.2);animation:blockpulse 0.7s ease-in-out infinite;}
+.block.running.block-embed {border-color:var(--teal);  color:var(--teal);  background:rgba(0,212,212,0.1); box-shadow:0 0 8px rgba(0,212,212,0.4);animation:blockpulse 0.7s ease-in-out infinite;}
+.block.running.block-rerank{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,0.1);box-shadow:0 0 8px rgba(167,139,250,0.4);animation:blockpulse 0.7s ease-in-out infinite;}
+.block.running.block-llm   {border-color:var(--amber); color:var(--amber); background:rgba(255,179,71,0.1); box-shadow:0 0 8px rgba(255,179,71,0.4);animation:blockpulse 0.7s ease-in-out infinite;}
+/* done — solid but not pulsing */
+.block.done.block-hyde  {border-color:var(--orange);color:var(--orange);background:rgba(255,106,0,0.08);}
+.block.done.block-embed {border-color:var(--teal);  color:var(--teal);  background:rgba(0,212,212,0.07);}
+.block.done.block-rerank{border-color:var(--purple);color:var(--purple);background:rgba(167,139,250,0.07);}
+.block.done.block-llm   {border-color:var(--amber); color:var(--amber); background:rgba(255,179,71,0.07);}
+/* skip / bypass */
+.block.skip{border-style:dashed;opacity:0.25;}
+@keyframes blockpulse{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* ── Queue banner ── */
+.queue-banner{display:none;background:rgba(0,212,212,0.05);border-bottom:1px solid rgba(0,212,212,0.2);padding:8px 24px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--teal);align-items:center;gap:12px;}
+.queue-banner.visible{display:flex;}
+.queue-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:ledpulse 0.8s ease-in-out infinite;}
+
+/* ── Display panel ── */
+.display-panel{background:var(--scan);padding:24px;}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.query-input-row{display:flex;gap:10px;}
+.query-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;padding:12px 16px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.query-input:focus{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,106,0,0.15);}
+.query-input::placeholder{color:var(--text-muted);}
+.submit-btn{background:var(--orange);border:none;border-radius:4px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;padding:0 22px;cursor:pointer;transition:all 0.15s;text-transform:uppercase;box-shadow:0 0 12px rgba(255,106,0,0.3);flex-shrink:0;}
+.submit-btn:hover{background:#ff8a30;box-shadow:0 0 18px rgba(255,106,0,0.5);}
+.submit-btn:active{transform:scale(0.97);}
+.submit-btn:disabled{background:#444;box-shadow:none;cursor:not-allowed;}
+
+/* ── Response ── */
+.response-wrap{margin-top:20px;}
+.response-area{min-height:220px;background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:20px;font-size:15px;line-height:1.7;color:var(--amber);position:relative;overflow:hidden;}
+[data-theme="light"] .response-area{background:var(--surface2);color:#1a1a1a;}
+.response-area.empty{display:flex;align-items:center;justify-content:center;color:var(--text-muted);}
+.empty-hint{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--text-muted);}
+.empty-hint .big{font-size:28px;margin-bottom:8px;opacity:0.4;}
+.response-area h1,.response-area h2,.response-area h3{font-family:'Rajdhani',sans-serif;font-weight:600;margin:14px 0 6px;color:var(--orange);}
+[data-theme="light"] .response-area h1,[data-theme="light"] .response-area h2,[data-theme="light"] .response-area h3{color:#cc5000;}
+.response-area p{margin-bottom:10px;}
+.response-area ul,.response-area ol{margin:6px 0 10px 20px;}
+.response-area li{margin-bottom:4px;}
+.response-area code{font-family:'JetBrains Mono',monospace;font-size:13px;background:rgba(255,106,0,0.1);border:1px solid rgba(255,106,0,0.2);padding:1px 6px;border-radius:3px;color:var(--orange);}
+[data-theme="light"] .response-area code{background:rgba(255,106,0,0.07);color:#cc5000;}
+.response-area strong{color:#fff;font-weight:600;}
+[data-theme="light"] .response-area strong{color:#000;}
+.response-area blockquote{border-left:3px solid var(--orange);padding-left:12px;color:var(--text-dim);margin:8px 0;}
+/* streaming cursor */
+.cursor{display:inline-block;width:2px;height:1em;background:var(--orange);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* scanning bar while loading */
+.scanner{display:none;position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);animation:scanh 1.4s ease-in-out infinite;}
+.scanner.on{display:block;}
+@keyframes scanh{0%{transform:translateX(-200%)}100%{transform:translateX(200%)}}
+
+/* ── Meta bar ── */
+.meta-bar{display:none;margin-top:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;flex-wrap:wrap;gap:16px;align-items:center;}
+.meta-bar.visible{display:flex;}
+.meta-item{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:5px;}
+.meta-val{color:var(--teal);}
+
+/* ── Sources ── */
+.sources{display:none;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.sources.visible{display:flex;}
+.source-tag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.src-pdf    {border-color:var(--orange);color:var(--orange);background:rgba(255,106,0,0.07);}
+.src-wiki   {border-color:var(--teal);  color:var(--teal);  background:rgba(0,212,212,0.07);}
+.src-forum  {border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.07);}
+.src-youtube{border-color:var(--red);   color:var(--red);   background:rgba(229,57,53,0.07);}
+.src-unknown{border-color:var(--text-dim);color:var(--text-dim);}
+
+/* ── Status bar ── */
+.statusbar{background:#0d0d0d;border-top:1px solid var(--border);padding:6px 24px;display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);}
+[data-theme="light"] .statusbar{background:#ccc;}
+.status-left{display:flex;gap:16px;}
+.status-item{display:flex;align-items:center;gap:5px;}
+.sdot{width:5px;height:5px;border-radius:50%;}
+.dot-ok{background:var(--green);box-shadow:0 0 4px var(--green);}
+.dot-warn{background:var(--amber);box-shadow:0 0 4px var(--amber);}
+</style>
+</head>
+<body>
+<div class="chassis">
+
+  <div class="faceplate">
+    <div class="brand">
+      <div class="brand-logo">FA</div>
+      <div class="brand-text">
+        <span class="brand-name">AXE-FX III ASSISTANT</span>
+        <span class="brand-sub">POWERED BY FRACTAL AUDIO CORPUS</span>
+      </div>
+    </div>
+    <div class="header-controls">
+      <div class="led orange" id="statusLed"></div>
+      <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀</button>
+    </div>
+  </div>
+
+  <!-- Signal chain display -->
+  <div class="block-row">
+    <span class="chain-label">SIGNAL</span>
+    <div class="block block-hyde"   id="blk-hyde"  >HyDE</div>
+    <div class="block block-embed"  id="blk-embed" >EMBED</div>
+    <div class="block block-rerank" id="blk-rerank">RERANK</div>
+    <div class="block block-llm"    id="blk-claude">CLAUDE</div>
+  </div>
+
+  <!-- Queue banner -->
+  <div class="queue-banner" id="queueBanner">
+    <div class="queue-dot"></div>
+    <span id="queueText">Waiting in queue…</span>
+  </div>
+
+  <div class="display-panel">
+    <div class="section-label">Query Input</div>
+    <div class="query-input-row">
+      <input type="text" class="query-input" id="queryInput"
+             placeholder="Ask anything about the Axe-Fx III…"
+             autocomplete="off" spellcheck="false" maxlength="500">
+      <button class="submit-btn" id="submitBtn">ASK</button>
+    </div>
+
+    <div class="response-wrap">
+      <div class="section-label" style="margin-top:20px;">Response</div>
+      <div class="response-area empty" id="responseArea">
+        <div class="scanner" id="scanner"></div>
+        <div class="empty-hint" id="emptyHint">
+          <div class="big">◈</div>
+          <div>AWAITING INPUT</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-bar" id="metaBar">
+      <div class="meta-item">TYPE   <span class="meta-val" id="mType">—</span></div>
+      <div class="meta-item">HyDE   <span class="meta-val" id="mHyde">—</span></div>
+      <div class="meta-item">RERANK <span class="meta-val" id="mRerank">—</span></div>
+      <div class="meta-item">LATENCY<span class="meta-val" id="mLatency">—</span></div>
+    </div>
+
+    <div class="sources" id="sourcesRow"></div>
+  </div>
+
+  <div class="statusbar">
+    <div class="status-left">
+      <div class="status-item"><div class="sdot dot-ok" id="apiDot"></div><span id="apiStatus">API ONLINE</span></div>
+      <div class="status-item"><div class="sdot dot-ok"></div><span id="corpusCount">CORPUS —</span></div>
+    </div>
+    <span id="lastQuery">—</span>
+  </div>
+
+</div><!-- /chassis -->
+
+<script>
+// ── DOMPurify config — strip everything except safe markdown output ─────────
+const PURIFY_CONFIG = {
+  ALLOWED_TAGS: ['p','br','strong','em','b','i','ul','ol','li','h1','h2','h3',
+                 'h4','h5','h6','blockquote','code','pre','a'],
+  ALLOWED_ATTR: ['href','title'],
+  ALLOW_DATA_ATTR: false,
+  FORCE_BODY: true,
+};
+function safeMarkdown(text) {
+  return DOMPurify.sanitize(
+    marked.parse(text, { gfm: true, breaks: true }),
+    PURIFY_CONFIG
+  );
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
+const saved = localStorage.getItem('axefx-theme') || 'dark';
+html.setAttribute('data-theme', saved);
+themeToggle.textContent = saved === 'dark' ? '☀' : '☾';
+themeToggle.addEventListener('click', () => {
+  const t = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', t);
+  localStorage.setItem('axefx-theme', t);
+  themeToggle.textContent = t === 'dark' ? '☀' : '☾';
+});
+
+// ── Block state machine ────────────────────────────────────────────────────
+const BLOCKS = {
+  hyde:   document.getElementById('blk-hyde'),
+  embed:  document.getElementById('blk-embed'),
+  rerank: document.getElementById('blk-rerank'),
+  claude: document.getElementById('blk-claude'),
+};
+function setBlock(name, state) {
+  // state: 'idle' | 'running' | 'done' | 'skip'
+  const el = BLOCKS[name];
+  if (!el) return;
+  el.classList.remove('running','done','skip');
+  if (state !== 'idle') el.classList.add(state);
+}
+function resetBlocks() {
+  Object.keys(BLOCKS).forEach(k => setBlock(k, 'idle'));
+}
+
+// ── Health check ──────────────────────────────────────────────────────────
+async function checkHealth() {
+  try {
+    const r = await fetch('/health');
+    const d = await r.json();
+    document.getElementById('corpusCount').textContent = `CORPUS ${(d.doc_count||0).toLocaleString()} CHUNKS`;
+    document.getElementById('apiDot').className = 'sdot dot-ok';
+    document.getElementById('apiStatus').textContent = 'API ONLINE';
+  } catch {
+    document.getElementById('apiDot').className = 'sdot dot-warn';
+    document.getElementById('apiStatus').textContent = 'API OFFLINE';
+  }
+}
+checkHealth();
+
+// ── Query ─────────────────────────────────────────────────────────────────
+const queryInput   = document.getElementById('queryInput');
+const submitBtn    = document.getElementById('submitBtn');
+const responseArea = document.getElementById('responseArea');
+const scanner      = document.getElementById('scanner');
+const emptyHint    = document.getElementById('emptyHint');
+const metaBar      = document.getElementById('metaBar');
+const sourcesRow   = document.getElementById('sourcesRow');
+const queueBanner  = document.getElementById('queueBanner');
+const queueText    = document.getElementById('queueText');
+
+let streamingDiv = null;  // live text target during streaming
+let cursorEl     = null;
+
+function setLoading(on) {
+  submitBtn.disabled    = on;
+  submitBtn.textContent = on ? '···' : 'ASK';
+}
+
+function srcClass(t) {
+  return {pdf:'src-pdf',wiki:'src-wiki',forum:'src-forum',youtube:'src-youtube'}[t] || 'src-unknown';
+}
+
+// SSE event handler
+function handleEvent(ev) {
+  switch (ev.type) {
+
+    case 'queue': {
+      const pos = ev.position;
+      if (pos <= 3 && ev.total <= 3) {
+        // Probably immediate — no need to show banner
+        queueBanner.classList.remove('visible');
+      } else {
+        const ahead = pos - 1;
+        const est   = ahead * 12;  // ~12s per request
+        queueText.textContent = `Position ${pos} in queue — ~${est}s estimated wait`;
+        queueBanner.classList.add('visible');
+      }
+      break;
+    }
+
+    case 'stage': {
+      queueBanner.classList.remove('visible');
+      const map = { hyde:'hyde', embed:'embed', rerank:'rerank', claude:'claude' };
+      const key = map[ev.name];
+      if (key) setBlock(key, ev.status === 'start' ? 'running' : ev.status === 'done' ? 'done' : 'skip');
+      break;
+    }
+
+    case 'text': {
+      // Remove cursor, append chunk, re-add cursor
+      if (cursorEl) cursorEl.remove();
+      streamingDiv.insertAdjacentHTML('beforeend',
+        DOMPurify.sanitize(ev.chunk, { ALLOWED_TAGS:[], ALLOWED_ATTR:[] })
+      );
+      cursorEl = document.createElement('span');
+      cursorEl.className = 'cursor';
+      streamingDiv.appendChild(cursorEl);
+      break;
+    }
+
+    case 'replace': {
+      // Hijack fallback — swap entire content
+      if (cursorEl) cursorEl.remove();
+      responseArea.innerHTML = safeMarkdown(ev.text);
+      break;
+    }
+
+    case 'done': {
+      // Remove streaming div + cursor, render final markdown
+      if (cursorEl) cursorEl.remove();
+      const rawText = streamingDiv ? streamingDiv.textContent : '';
+      responseArea.innerHTML = safeMarkdown(rawText);
+
+      // Meta
+      document.getElementById('mType').textContent    = (ev.query_type||'—').toUpperCase();
+      document.getElementById('mHyde').textContent    = ev.hyde_used   ? 'ON' : 'OFF';
+      document.getElementById('mRerank').textContent  = ev.rerank_used ? 'ON' : 'OFF';
+      document.getElementById('mLatency').textContent = ev.latency_ms  ? `${ev.latency_ms}ms` : '—';
+      metaBar.classList.add('visible');
+
+      // Sources
+      const seen = new Set();
+      sourcesRow.innerHTML = '';
+      (ev.sources || []).forEach(s => {
+        const key = `${s.source_type}:${s.filename}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        const tag = document.createElement('div');
+        tag.className = `source-tag ${srcClass(s.source_type)}`;
+        tag.title     = s.filename;
+        tag.textContent = `[${(s.source_type||'?').toUpperCase()}] ${s.filename}`;
+        sourcesRow.appendChild(tag);
+      });
+      sourcesRow.classList.add('visible');
+
+      document.getElementById('lastQuery').textContent = `LAST QUERY ${new Date().toLocaleTimeString()}`;
+      setLoading(false);
+      queueBanner.classList.remove('visible');
+      scanner.classList.remove('on');
+      break;
+    }
+
+    case 'error': {
+      responseArea.innerHTML = `<span style="color:var(--red)">${DOMPurify.sanitize(ev.message,{ALLOWED_TAGS:[]})}</span>`;
+      resetBlocks();
+      setLoading(false);
+      queueBanner.classList.remove('visible');
+      scanner.classList.remove('on');
+      break;
+    }
+  }
+}
+
+async function submitQuery() {
+  const q = queryInput.value.trim();
+  if (!q) return;
+
+  setLoading(true);
+  resetBlocks();
+  emptyHint.style.display = 'none';
+  responseArea.classList.remove('empty');
+  metaBar.classList.remove('visible');
+  sourcesRow.classList.remove('visible');
+  sourcesRow.innerHTML = '';
+  queueBanner.classList.remove('visible');
+
+  // Set up streaming target
+  responseArea.innerHTML = '';
+  scanner.classList.add('on');
+  responseArea.appendChild(scanner);
+  streamingDiv = document.createElement('div');
+  streamingDiv.style.cssText = 'font-family:Barlow,sans-serif;font-size:15px;line-height:1.7;white-space:pre-wrap;';
+  responseArea.appendChild(streamingDiv);
+  cursorEl = null;
+
+  try {
+    const res = await fetch('/ask/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const msg = err.detail?.[0]?.msg || err.detail || `HTTP ${res.status}`;
+      responseArea.innerHTML = `<span style="color:var(--red)">${DOMPurify.sanitize(msg,{ALLOWED_TAGS:[]})}</span>`;
+      setLoading(false);
+      return;
+    }
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let   buffer  = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop();   // keep incomplete trailing line
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          handleEvent(JSON.parse(line.slice(6)));
+        } catch { /* malformed event — skip */ }
+      }
+    }
+  } catch (e) {
+    responseArea.innerHTML = `<span style="color:var(--red)">Connection error: ${DOMPurify.sanitize(e.message,{ALLOWED_TAGS:[]})}</span>`;
+    resetBlocks();
+    setLoading(false);
+    queueBanner.classList.remove('visible');
+    scanner.classList.remove('on');
+  }
+}
+
+submitBtn.addEventListener('click', submitQuery);
+queryInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) submitQuery(); });
+</script>
+</body>
+</html>
