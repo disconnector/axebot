@@ -32,10 +32,9 @@ from security import validate_query, build_framed_context, looks_hijacked, RateL
 # ── Config ─────────────────────────────────────────────────────────────────────
 DB_PATH      = Path.home() / "rag" / "db"
 META_PATH    = Path.home() / "rag" / "db_meta.json"
-EMBED_MODEL      = "/home/rich/rag/models/axefx-embed/final"
-RERANK_MODEL     = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-COLLECTION       = "axefx3_bge"
-EMBED_SERVER_URL = os.environ.get("EMBED_SERVER_URL", "http://localhost:8600")
+EMBED_MODEL  = "BAAI/bge-large-en-v1.5"
+RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+COLLECTION   = "axefx3_bge"
 CLAUDE_MODEL = "claude-opus-4-6"
 HAIKU_MODEL  = "claude-haiku-4-5-20251001"
 STATIC_DIR   = Path(__file__).parent / "static"
@@ -155,9 +154,10 @@ _rate_limiter = None
 def get_collection():
     global _collection
     if _collection is None:
-        from remote_embedder import RemoteEmbeddingFunction
         client = chromadb.PersistentClient(path=str(DB_PATH))
-        ef     = RemoteEmbeddingFunction(server_url=EMBED_SERVER_URL)
+        ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name=EMBED_MODEL, device="cpu"
+        )
         _collection = client.get_collection(name=COLLECTION, embedding_function=ef)
     return _collection
 
