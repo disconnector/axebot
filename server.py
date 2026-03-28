@@ -35,7 +35,7 @@ META_PATH    = Path.home() / "rag" / "db_meta.json"
 EMBED_MODEL  = "BAAI/bge-large-en-v1.5"
 RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 COLLECTION   = "axefx3_bge"
-CLAUDE_MODEL = "claude-opus-4-6"
+CLAUDE_MODEL = "claude-sonnet-4-6"
 HAIKU_MODEL  = "claude-haiku-4-5-20251001"
 STATIC_DIR   = Path(__file__).parent / "static"
 
