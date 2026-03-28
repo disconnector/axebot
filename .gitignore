@@ -19,3 +19,11 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Large generated data files
+training_pairs.jsonl
+benchmark_*.json
+chroma_db/
+
+# Temp / generated
+cleanup_noise.log

@@ -4,6 +4,7 @@ Axe-Fx III RAG API + User UI Server  (port 8502)
 """
 
 import asyncio
+import os
 import json
 import logging
 import random
@@ -31,14 +32,15 @@ from security import validate_query, build_framed_context, looks_hijacked, RateL
 # ── Config ─────────────────────────────────────────────────────────────────────
 DB_PATH      = Path.home() / "rag" / "db"
 META_PATH    = Path.home() / "rag" / "db_meta.json"
-EMBED_MODEL  = "/home/rich/rag/models/axefx-embed/final"
-RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-COLLECTION   = "axefx3"
+EMBED_MODEL      = "/home/rich/rag/models/axefx-embed/final"
+RERANK_MODEL     = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+COLLECTION       = "axefx3_bge"
+EMBED_SERVER_URL = os.environ.get("EMBED_SERVER_URL", "http://localhost:8600")
 CLAUDE_MODEL = "claude-opus-4-6"
 HAIKU_MODEL  = "claude-haiku-4-5-20251001"
 STATIC_DIR   = Path(__file__).parent / "static"
 
-RERANK_FETCH_MULTIPLIER  = 4
+RERANK_FETCH_MULTIPLIER  = 8
 RATE_LIMIT_REQUESTS      = 10
 RATE_LIMIT_WINDOW        = 60
 MAX_CONCURRENT_RAG       = 3    # semaphore — max parallel RAG pipelines
@@ -112,7 +114,11 @@ SOURCE_FILTERS = {
 TOP_K_MAP = {"factual": 6, "experiential": 12, "general": 8}
 
 def detect_query_type(question):
+    import re as _re
     q  = question.lower()
+    # Firmware/release note queries must search all sources — release notes live in forum threads
+    if _re.search(r'firmware\s+\d+|\d+\.\d{2}|release\s+notes?|changelog|what.{0,30}added.{0,30}\d+', q):
+        return "general"
     fs = sum(1 for w in ["what is","what does","what are","how does","how do","define",
                           "explain","parameter","setting","value","range","what's the",
                           "what block","which block","what type"] if w in q)
@@ -149,8 +155,9 @@ _rate_limiter = None
 def get_collection():
     global _collection
     if _collection is None:
+        from remote_embedder import RemoteEmbeddingFunction
         client = chromadb.PersistentClient(path=str(DB_PATH))
-        ef     = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBED_MODEL)
+        ef     = RemoteEmbeddingFunction(server_url=EMBED_SERVER_URL)
         _collection = client.get_collection(name=COLLECTION, embedding_function=ef)
     return _collection
 
