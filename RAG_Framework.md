@@ -506,4 +506,4 @@ Admin Server (port 8503)
 
 ---
 
-*Built March 2026. AxeBot serves the Fractal Audio community at http://192.168.50.11:8503*
+*Built March 2026. AxeBot is a self-hosted RAG assistant — run locally on your own machine*
